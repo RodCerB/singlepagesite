@@ -87,7 +87,7 @@
   margin: 0 50px;
   border-radius: 10px;
 }
-#plugHunter_btn {
+#plugHunter_btn, #button_quiz  {
   width: 80px;
   height: 30px;
   font-family: "Roboto", sans-serif;
