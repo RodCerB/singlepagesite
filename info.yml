@@ -1,0 +1,47 @@
+stages: 
+  - build 
+  - deploy
+
+build:
+  image: node:latest
+  stage: build
+  script:
+    - echo "Building deploy package"
+    - cd my-app
+    - npm install
+    - CI=false npm run build
+    - echo "Build successful..."
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - my-app/build
+      - my-app/node_modules
+  only:
+    - master
+    - deploy
+    - patch-1
+
+deploy:
+  image: kroniak/ssh-client
+  stage: deploy
+  script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_(chave privada do deployer no servidor da info)
+    - echo "$SSH_PUBLIC_KEY" > ~/.ssh/id_(chave pública do deployer no servidor da info).pub
+    - chmod 600 ~/.ssh/id_(chave privada)
+    - chmod 600 ~/.ssh/id_(chave pública).pub
+    - eval $(ssh-agent -s)
+    - echo "$PASS" | ssh-add ~/.ssh/id_(chave privada)
+    - PROJECT_REMOTE_PATH="/var/www/teste/(Nome Site)/"
+    - DEPLOY_HOST="(identificador deployer da info)"
+    - ssh $DEPLOY_HOST 'cd /var/www/teste/(Nome Site)/ && rm -rf build && echo "connection sucessful"'
+    - echo "Start deploy..."
+    - scp -r ./my-app/build/ (identificador deployer da info):/var/www/teste/(Nome Site)/
+    - echo "Deploy sucessful..."
+  only:
+    - master
+    - deploy
+    - patch-1
+
